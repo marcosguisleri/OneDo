@@ -1,5 +1,6 @@
 using one_do.Domain;
 using one_do.Dtos;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
@@ -42,6 +43,57 @@ app.MapPost("/tasks", (CreateTaskRequest request) =>
 
   return Results.Created($"/tasks/`{task.Id}", task);
   
+});
+
+app.MapPatch("/tasks/{id}/toggle", (Guid id) =>
+{
+  var task = listTask.FirstOrDefault(t => t.Id == id);
+
+  if(task == null)
+    return Results.NotFound(new { error = "Tarefa não encontrada!" });
+  
+  task.Done = !task.Done;
+
+  return Results.Ok(task);
+});
+
+app.MapPatch("/tasks/{id}", (Guid id, UpdateTaskRequest request) =>
+{
+
+  var task = listTask.FirstOrDefault(t => t.Id == id);
+
+  if(task == null)
+    return Results.NotFound(new { error = "Tarefa não encontrada!" });
+
+  var title = request.Title?.Trim();
+
+  if(string.IsNullOrWhiteSpace(title))
+  {
+    return Results.BadRequest(new { error = "O título é obrigatório!" });
+  }
+
+  if(title.Length < 3 || title.Length > 80)
+  {
+    return Results.BadRequest(new { error = "Número de caracteres inválido!" });
+  }
+
+  task.Title = title;
+
+  return Results.Ok(task);
+  
+});
+
+app.MapDelete("/tasks/{id}", (Guid id) =>
+{
+  var task = listTask.FirstOrDefault(t => t.Id == id);
+
+  if(task == null)
+    return Results.NotFound(new { error = "Tarefa não encontrada!" });
+
+  listTask.Remove(task);
+
+  return Results.NoContent();
+
 });
 
 app.Run();
