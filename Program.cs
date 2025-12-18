@@ -17,6 +17,17 @@ listTask.Add(new TaskItem { Id = Guid.NewGuid(), Title = "Criar pasta domain com
 
 app.MapGet("/tasks", () => listTask);
 
+app.MapGet("/tasks/{id}", (Guid id) =>
+{
+    var task = listTask.FirstOrDefault(t => t.Id == id);
+
+    if(task == null)
+      return Results.NotFound(new { error = "Tarefa não encontrada!" });
+    
+    return Results.Ok(task);
+
+});
+
 app.MapPost("/tasks", (CreateTaskRequest request) =>
 {
   var title = request.Title?.Trim();
@@ -41,7 +52,7 @@ app.MapPost("/tasks", (CreateTaskRequest request) =>
 
   listTask.Add(task);
 
-  return Results.Created($"/tasks/`{task.Id}", task);
+  return Results.Created($"/tasks/{task.Id}", task);
   
 });
 
